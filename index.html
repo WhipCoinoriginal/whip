@@ -144,6 +144,129 @@ svg.icon{width:20px;height:20px;display:block}
 
 <!-- Inizio blocco Live $WHIP -->
 <section id="whip-live-widgets" style="margin:50px 0; text-align:center;">
+
+<!-- === $WHIP Live Dashboard (auto-detect) === -->
+<section id="whip-dashboard" class="dash" style="padding:14px;border:1px solid #2a2a2a;border-radius:12px;background:#0b0b12;margin:28px 0 18px 0;">
+  <h2 style="margin:0 0 10px 0">$WHIP live</h2>
+  <div class="cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
+      <div class="k" style="opacity:.7;font-size:.9rem">Holders</div>
+      <div id="whip-holders" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
+    </div>
+    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
+      <div class="k" style="opacity:.7;font-size:.9rem">Market Cap</div>
+      <div id="whip-mcap" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
+    </div>
+    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
+      <div class="k" style="opacity:.7;font-size:.9rem">Liquidity</div>
+      <div id="whip-liq" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
+    </div>
+  </div>
+  <small id="whip-updated" style="display:block;margin-top:8px;opacity:.7">Aggiornamento…</small>
+</section>
+
+<script>
+(function(){
+  const nfUsd = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
+  const nfInt = new Intl.NumberFormat('en-US');
+  const elH = document.getElementById('whip-holders');
+  const elM = document.getElementById('whip-mcap');
+  const elL = document.getElementById('whip-liq');
+  const elU = document.getElementById('whip-updated');
+
+  // 1) Try to read token from global; else from Dexscreener embed pair
+  async function resolveTokenAddress(){
+    if (window.WHIP_TOKEN && window.WHIP_TOKEN.length > 30) return window.WHIP_TOKEN;
+    const iframe = Array.from(document.querySelectorAll('iframe'))
+      .find(x => (x.src||'').includes('dexscreener.com'));
+    if(!iframe) return null;
+    try{
+      const pair = (iframe.src.split('/').pop()||'').split('?')[0];
+      const url = `https://api.dexscreener.com/latest/dex/pairs/solana/${pair}`;
+      const j = await fetch(url).then(r=>r.json());
+      const p = (j?.pairs||[])[0];
+      if(!p) return null;
+      const bt = p.baseToken || {};
+      const qt = p.quoteToken || {};
+      // Prefer non-stable as token (avoid USDC/USDT), or the one named WHIP
+      const isStable = (sym) => /^(USDC|USDT|USD)\b/i.test(sym||'');
+      if ((bt?.symbol||'').toUpperCase().includes('WHIP')) return bt.address;
+      if ((qt?.symbol||'').toUpperCase().includes('WHIP')) return qt.address;
+      if (!isStable(bt.symbol)) return bt.address;
+      if (!isStable(qt.symbol)) return qt.address;
+      return bt.address || qt.address || null;
+    }catch(e){
+      console.warn('resolveTokenAddress failed', e);
+      return null;
+    }
+  }
+
+  async function fetchDexByToken(token){
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${token}`);
+    const j = await r.json();
+    const pairs = j?.pairs || [];
+    if(!pairs.length) return { price: null, liquidityUsd: null, fdv: null, marketCap: null };
+    const best = pairs.sort((a,b)=>(b?.liquidity?.usd||0)-(a?.liquidity?.usd||0))[0];
+    return {
+      price: Number(best?.priceUsd || 0),
+      liquidityUsd: Number(best?.liquidity?.usd || 0),
+      fdv: Number(best?.fdv || 0),
+      marketCap: Number(best?.marketCap || 0)
+    };
+  }
+
+  async function fetchSolscanMeta(token){
+    const [holdersRes, metaRes] = await Promise.all([
+      fetch(`https://api.solscan.io/token/holders?tokenAddress=${token}&offset=0&limit=1`),
+      fetch(`https://api.solscan.io/token/meta?tokenAddress=${token}`)
+    ]);
+    const holdersJson = await holdersRes.json();
+    const metaJson    = await metaRes.json();
+    const holders = Number(holdersJson?.total ?? 0);
+    const decimals = Number(metaJson?.decimals ?? 0);
+    const rawSupply = Number(metaJson?.supply ?? 0);
+    const circSupply = decimals ? rawSupply / (10 ** decimals) : rawSupply;
+    return { holders, circSupply };
+  }
+
+  async function refresh(){
+    try{
+      const token = await resolveTokenAddress() || (window.WHIP_TOKEN||null);
+      if(!token){ throw new Error('Token address not found'); }
+
+      // Fetch DEX first (reliable CORS)
+      const dex = await fetchDexByToken(token);
+      if (dex.liquidityUsd) elL.textContent = nfUsd.format(dex.liquidityUsd);
+
+      // Try Solscan; if blocked, continue with FDV/marketCap
+      let holders = null, circSupply = null;
+      try{
+        const meta = await fetchSolscanMeta(token);
+        holders = meta.holders; circSupply = meta.circSupply;
+      }catch(e){
+        console.warn('Solscan blocked/failed', e);
+      }
+
+      let mcap = null;
+      if (dex.price && circSupply) mcap = dex.price * circSupply;
+      else if (dex.marketCap) mcap = dex.marketCap;
+      else if (dex.fdv) mcap = dex.fdv;
+
+      if (holders != null) elH.textContent = nfInt.format(holders);
+      if (mcap != null)    elM.textContent = nfUsd.format(mcap);
+
+      elU.textContent = 'Ultimo aggiornamento: ' + new Date().toLocaleTimeString();
+    }catch(e){
+      console.error(e);
+      elU.textContent = 'Impossibile aggiornare ora.';
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 30000);
+})();
+</script>
+<!-- === /$WHIP Live Dashboard === -->
 <h2>$WHIP — Live Chart &amp; Market Data</h2>
 <!-- DEX Screener -->
 <div style="height:24px"></div>
@@ -172,92 +295,5 @@ svg.icon{width:20px;height:20px;display:block}
   });
   document.getElementById('year').textContent = new Date().getFullYear();
 </script>
-
-<!-- === $WHIP Live Dashboard (client‑side) === -->
-<section id="whip-dashboard" class="dash" style="padding:14px;border:1px solid #2a2a2a;border-radius:12px;background:#0b0b12;margin:20px 0;">
-  <h3 style="margin:0 0 10px 0">$WHIP live</h3>
-  <div class="cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
-      <div class="k" style="opacity:.7;font-size:.9rem">Holders</div>
-      <div id="whip-holders" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
-    </div>
-    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
-      <div class="k" style="opacity:.7;font-size:.9rem">Market Cap</div>
-      <div id="whip-mcap" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
-    </div>
-    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
-      <div class="k" style="opacity:.7;font-size:.9rem">Liquidity</div>
-      <div id="whip-liq" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
-    </div>
-  </div>
-  <small id="whip-updated" style="display:block;margin-top:8px;opacity:.7">Aggiornamento…</small>
-</section>
-
-<script>
-/*
-  $WHIP widget
-  - Set WHIP_TOKEN to your token address (base58) on Solana.
-  - Data sources: DexScreener (price/liquidity) + Solscan (holders,supply).
-  - All runs client-side, GitHub Pages compatible.
-*/
-(function(){
-  const WHIP_TOKEN = window.WHIP_TOKEN || "PASTE_YOUR_TOKEN"; // TODO: replace with your token address
-  const nfUsd = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
-  const nfInt = new Intl.NumberFormat('en-US');
-  const elH = document.getElementById('whip-holders');
-  const elM = document.getElementById('whip-mcap');
-  const elL = document.getElementById('whip-liq');
-  const elU = document.getElementById('whip-updated');
-
-  async function fetchDex() {
-    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${WHIP_TOKEN}`);
-    const j = await r.json();
-    const pairs = j?.pairs || [];
-    if(!pairs.length) return { price: null, liquidityUsd: null, fdv: null };
-    const best = pairs.sort((a,b)=>(b?.liquidity?.usd||0)-(a?.liquidity?.usd||0))[0];
-    return {
-      price: Number(best?.priceUsd || 0),
-      liquidityUsd: Number(best?.liquidity?.usd || 0),
-      fdv: Number(best?.fdv || 0),
-    };
-  }
-
-  async function fetchSolscanMeta(){
-    // holders “totali” + supply/decimals per market cap
-    const [holdersRes, metaRes] = await Promise.all([
-      fetch(`https://api.solscan.io/token/holders?tokenAddress=${WHIP_TOKEN}&offset=0&limit=1`),
-      fetch(`https://api.solscan.io/token/meta?tokenAddress=${WHIP_TOKEN}`)
-    ]);
-    const holdersJson = await holdersRes.json();
-    const metaJson    = await metaRes.json();
-    const holders = Number(holdersJson?.total ?? 0);
-    const decimals = Number(metaJson?.decimals ?? 0);
-    const rawSupply = Number(metaJson?.supply ?? 0);
-    const circSupply = decimals ? rawSupply / (10 ** decimals) : rawSupply;
-    return { holders, circSupply };
-  }
-
-  async function refresh(){
-    try{
-      const [{price, liquidityUsd}, {holders, circSupply}] = await Promise.all([
-        fetchDex(),
-        fetchSolscanMeta()
-      ]);
-      const mcap = (price && circSupply) ? price * circSupply : null;
-      elH.textContent = holders ? nfInt.format(holders) : '—';
-      elL.textContent = liquidityUsd ? nfUsd.format(liquidityUsd) : '—';
-      elM.textContent = mcap ? nfUsd.format(mcap) : '—';
-      elU.textContent = 'Ultimo aggiornamento: ' + new Date().toLocaleTimeString();
-    }catch(e){
-      console.error(e);
-      elU.textContent = 'Impossibile aggiornare ora.';
-    }
-  }
-
-  refresh();
-  setInterval(refresh, 30000);
-})();
-</script>
-<!-- === /$WHIP Live Dashboard === -->
 </body>
 </html>
