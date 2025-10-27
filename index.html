@@ -172,6 +172,7 @@ svg.icon{width:20px;height:20px;display:block}
     <a id="solscan-link" href="#" target="_blank" rel="noopener" style="display:inline-block;padding:8px 12px;border:1px solid #2a2a2a;border-radius:8px;text-decoration:none">View on Solscan</a>
   </div>
 </section>
+
 <script>
 (function(){
   const nfUsd = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
@@ -182,106 +183,86 @@ svg.icon{width:20px;height:20px;display:block}
   const elU = document.getElementById('whip-updated');
   const elS = document.getElementById('solscan-link');
 
-  function isStable(sym){ return /^(USDC|USDT|USD|\$)?(USDC|USDT|USD)?$/i.test((sym||'').trim()); }
-
-  function whenIframeReady(timeoutMs=10000){
-    const deadline = Date.now() + timeoutMs;
-    return new Promise((resolve) => {
-      function check(){
-        const iframe = Array.from(document.querySelectorAll('iframe'))
-          .find(x => (x.src||'').includes('dexscreener.com/solana/'));
-        if (iframe) return resolve(iframe);
-        if (Date.now() > deadline) return resolve(null);
-        setTimeout(check, 250);
+  async function getJson(url){
+    try{
+      const r = await fetch(url, {cache:'no-store', credentials:'omit'});
+      if (r.ok) return await r.json();
+    }catch(e){}
+    try{
+      const r2 = await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(url), {cache:'no-store'});
+      if (r2.ok){
+        const txt = await r2.text();
+        try { return JSON.parse(txt); } catch(e){ return null; }
       }
-      if (document.readyState === 'loading'){
-        document.addEventListener('DOMContentLoaded', check, { once:true });
-      } else {
-        check();
-      }
-    });
+    }catch(e){}
+    return null;
   }
 
-  async function resolvePairFromIframe(){
-    const iframe = await whenIframeReady(10000);
-    if(!iframe) return null;
-    return (iframe.src.split('/').pop()||'').split('?')[0];
-  }
-
-  async function fetchDexByToken(token){
-    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${token}`);
-    return r.json();
-  }
-  async function fetchDexByPair(pair){
-    const r = await fetch(`https://api.dexscreener.com/latest/dex/pairs/solana/${pair}`);
-    return r.json();
-  }
-
-  async function fetchSolscanMeta(token){
-    const [holdersRes, metaRes] = await Promise.all([
-      fetch(`https://public-api.solscan.io/token/holders?tokenAddress=${token}&offset=0&limit=1`),
-      fetch(`https://public-api.solscan.io/token/meta?address=${token}`)
-    ]);
-    const holdersJson = await holdersRes.json();
-    const metaJson    = await metaRes.json();
-    const holders = Number(holdersJson?.total ?? 0);
-    const decimals = Number(metaJson?.decimals ?? 0);
-    const rawSupply = Number(metaJson?.supply ?? 0);
+  async function dexByToken(token){ return await getJson(`https://api.dexscreener.com/latest/dex/tokens/${token}`) || {pairs:[]}; }
+  async function dexByPair(pair){ return await getJson(`https://api.dexscreener.com/latest/dex/pairs/solana/${pair}`) || {pairs:[]}; }
+  async function solscanMeta(token){
+    const h = await getJson(`https://public-api.solscan.io/token/holders?tokenAddress=${token}&offset=0&limit=1`) || {};
+    const m = await getJson(`https://public-api.solscan.io/token/meta?address=${token}`) || {};
+    const holders   = Number(h?.total ?? h?.data?.total ?? 0);
+    const decimals  = Number(m?.decimals ?? m?.tokenInfo?.decimals ?? 0);
+    const rawSupply = Number(m?.supply   ?? m?.tokenInfo?.supply   ?? 0);
     const circSupply = decimals ? rawSupply / (10 ** decimals) : rawSupply;
     return { holders, circSupply };
+  }
+
+  function updateDexIframe(pair){
+    try{
+      const ifr = document.getElementById('dex-embed');
+      if (ifr && pair){
+        ifr.src = `https://dexscreener.com/solana/${pair}?embed=1&theme=dark&trades=0&info=0`;
+      }
+    }catch(e){}
   }
 
   async function refresh(){
     try{
       const token = (window.WHIP_TOKEN && window.WHIP_TOKEN.length>30) ? window.WHIP_TOKEN : null;
       if(!token) throw new Error('Missing token address');
+      elS && (elS.href = `https://solscan.io/token/${token}`);
 
-      // Update Solscan button
-      if (elS) { elS.href = `https://solscan.io/token/${token}`; }
+      let price=null, marketCap=null, fdv=null, liquidityUsd=null, pairAddr=null;
 
-      // 1) Dex data from token endpoint (marketcap/price). 
-      let price=null, marketCap=null, fdv=null;
-      try{
-        const j = await fetchDexByToken(token);
-        const pairs = j?.pairs || [];
-        if (pairs.length){
-          const best = pairs.sort((a,b)=>(b?.liquidity?.usd||0)-(a?.liquidity?.usd||0))[0];
-          price = Number(best?.priceUsd || 0);
-          marketCap = Number(best?.marketCap || 0);
-          fdv = Number(best?.fdv || 0);
-        }
-      }catch(e){ console.warn('Dex token fetch failed', e); }
+      const j = await dexByToken(token);
+      const pairs = j?.pairs || [];
+      if (pairs.length){
+        const best = pairs.sort((a,b)=>(b?.liquidity?.usd||0)-(a?.liquidity?.usd||0))[0];
+        pairAddr = best?.pairAddress || null;
+        liquidityUsd = Number(best?.liquidity?.usd || 0);
+        price      = Number(best?.priceUsd   || 0) || null;
+        marketCap  = Number(best?.marketCap  || 0) || null;
+        fdv        = Number(best?.fdv        || 0) || null;
+      }
 
-      // 2) Liquidity from pair endpoint (more reliable for some pools)
-      try{
-        const pair = await resolvePairFromIframe();
-        if(pair){
-          const jp = await fetchDexByPair(pair);
-          const p = (jp?.pairs||[])[0];
-          const liqUsd = Number(p?.liquidity?.usd || 0);
-          if (liqUsd) elL.textContent = nfUsd.format(liqUsd);
-          // Also use price/marketcap if better here
-          if (!price && p?.priceUsd) price = Number(p.priceUsd);
+      if (pairAddr) updateDexIframe(pairAddr);
+      if (liquidityUsd) elL.textContent = nfUsd.format(liquidityUsd);
+
+      if ((!liquidityUsd || !price || !marketCap) && pairAddr){
+        const jp = await dexByPair(pairAddr);
+        const p = (jp?.pairs||[])[0];
+        if (p){
+          const liq = Number(p?.liquidity?.usd || 0);
+          if (liq) { liquidityUsd = liq; elL.textContent = nfUsd.format(liq); }
+          if (!price && p?.priceUsd)     price = Number(p.priceUsd);
           if (!marketCap && p?.marketCap) marketCap = Number(p.marketCap);
-          if (!fdv && p?.fdv) fdv = Number(p.fdv);
+          if (!fdv && p?.fdv)            fdv = Number(p.fdv);
         }
-      }catch(e){ console.warn('Dex pair fetch failed', e); }
+      }
 
-      // 3) Holders + supply (for mcap calc fallback)
-      let holders = null, circSupply = null;
-      try{
-        const meta = await fetchSolscanMeta(token);
-        holders = meta.holders; circSupply = meta.circSupply;
-      }catch(e){ console.warn('Solscan fetch failed', e); }
+      const meta = await solscanMeta(token);
+      const holders = meta.holders; const circSupply = meta.circSupply;
 
-      // Compute Market Cap priority: price*circSupply -> marketCap -> fdv
       let mcap = null;
       if (price && circSupply) mcap = price * circSupply;
-      else if (marketCap) mcap = marketCap;
-      else if (fdv) mcap = fdv;
+      else if (marketCap)      mcap = marketCap;
+      else if (fdv)            mcap = fdv;
 
       if (holders != null && !Number.isNaN(holders)) elH.textContent = nfInt.format(holders);
-      if (mcap != null && !Number.isNaN(mcap))       elM.textContent = nfUsd.format(mcap);
+      if (mcap    != null && !Number.isNaN(mcap))    elM.textContent = nfUsd.format(mcap);
 
       elU.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
     }catch(e){
@@ -294,13 +275,14 @@ svg.icon{width:20px;height:20px;display:block}
   setInterval(refresh, 30000);
 })();
 </script>
+
 <!-- === /$WHIP Live Dashboard === -->
 <!-- === /$WHIP Live Dashboard === -->
 
 <h2>$WHIP — Live Chart &amp; Market Data</h2>
 <!-- DEX Screener -->
 <div style="height:24px"></div>
-<iframe allowfullscreen="" height="600" loading="lazy" src="https://dexscreener.com/solana/4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon" style="border:0; border-radius:12px; overflow:hidden;" width="100%">
+<iframe allowfullscreen="" height="600" loading="lazy" src="https://dexscreener.com/solana/4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon?embed=1&theme=dark&trades=0&info=0" style="border:0; border-radius:12px; overflow:hidden;" width="100%">
 </iframe>
 <div style="margin-top:20px; text-align:center;">
 </div>
