@@ -172,5 +172,92 @@ svg.icon{width:20px;height:20px;display:block}
   });
   document.getElementById('year').textContent = new Date().getFullYear();
 </script>
+
+<!-- === $WHIP Live Dashboard (client‑side) === -->
+<section id="whip-dashboard" class="dash" style="padding:14px;border:1px solid #2a2a2a;border-radius:12px;background:#0b0b12;margin:20px 0;">
+  <h3 style="margin:0 0 10px 0">$WHIP live</h3>
+  <div class="cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
+      <div class="k" style="opacity:.7;font-size:.9rem">Holders</div>
+      <div id="whip-holders" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
+    </div>
+    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
+      <div class="k" style="opacity:.7;font-size:.9rem">Market Cap</div>
+      <div id="whip-mcap" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
+    </div>
+    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
+      <div class="k" style="opacity:.7;font-size:.9rem">Liquidity</div>
+      <div id="whip-liq" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
+    </div>
+  </div>
+  <small id="whip-updated" style="display:block;margin-top:8px;opacity:.7">Aggiornamento…</small>
+</section>
+
+<script>
+/*
+  $WHIP widget
+  - Set WHIP_TOKEN to your token address (base58) on Solana.
+  - Data sources: DexScreener (price/liquidity) + Solscan (holders,supply).
+  - All runs client-side, GitHub Pages compatible.
+*/
+(function(){
+  const WHIP_TOKEN = window.WHIP_TOKEN || "PASTE_YOUR_TOKEN"; // TODO: replace with your token address
+  const nfUsd = new Intl.NumberFormat('en-US',{style:'currency',currency:'USD',maximumFractionDigits:0});
+  const nfInt = new Intl.NumberFormat('en-US');
+  const elH = document.getElementById('whip-holders');
+  const elM = document.getElementById('whip-mcap');
+  const elL = document.getElementById('whip-liq');
+  const elU = document.getElementById('whip-updated');
+
+  async function fetchDex() {
+    const r = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${WHIP_TOKEN}`);
+    const j = await r.json();
+    const pairs = j?.pairs || [];
+    if(!pairs.length) return { price: null, liquidityUsd: null, fdv: null };
+    const best = pairs.sort((a,b)=>(b?.liquidity?.usd||0)-(a?.liquidity?.usd||0))[0];
+    return {
+      price: Number(best?.priceUsd || 0),
+      liquidityUsd: Number(best?.liquidity?.usd || 0),
+      fdv: Number(best?.fdv || 0),
+    };
+  }
+
+  async function fetchSolscanMeta(){
+    // holders “totali” + supply/decimals per market cap
+    const [holdersRes, metaRes] = await Promise.all([
+      fetch(`https://api.solscan.io/token/holders?tokenAddress=${WHIP_TOKEN}&offset=0&limit=1`),
+      fetch(`https://api.solscan.io/token/meta?tokenAddress=${WHIP_TOKEN}`)
+    ]);
+    const holdersJson = await holdersRes.json();
+    const metaJson    = await metaRes.json();
+    const holders = Number(holdersJson?.total ?? 0);
+    const decimals = Number(metaJson?.decimals ?? 0);
+    const rawSupply = Number(metaJson?.supply ?? 0);
+    const circSupply = decimals ? rawSupply / (10 ** decimals) : rawSupply;
+    return { holders, circSupply };
+  }
+
+  async function refresh(){
+    try{
+      const [{price, liquidityUsd}, {holders, circSupply}] = await Promise.all([
+        fetchDex(),
+        fetchSolscanMeta()
+      ]);
+      const mcap = (price && circSupply) ? price * circSupply : null;
+      elH.textContent = holders ? nfInt.format(holders) : '—';
+      elL.textContent = liquidityUsd ? nfUsd.format(liquidityUsd) : '—';
+      elM.textContent = mcap ? nfUsd.format(mcap) : '—';
+      elU.textContent = 'Ultimo aggiornamento: ' + new Date().toLocaleTimeString();
+    }catch(e){
+      console.error(e);
+      elU.textContent = 'Impossibile aggiornare ora.';
+    }
+  }
+
+  refresh();
+  setInterval(refresh, 30000);
+})();
+</script>
+<!-- === /$WHIP Live Dashboard === -->
 </body>
 </html>
