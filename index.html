@@ -220,7 +220,7 @@ svg.icon{width:20px;height:20px;display:block}
   async function fetchSolscanMeta(token){
     const [holdersRes, metaRes] = await Promise.all([
       fetch(`https://public-api.solscan.io/token/holders?tokenAddress=${token}&offset=0&limit=1`),
-      fetch(`https://public-api.solscan.io/token/meta?tokenAddress=${token}`)
+      fetch(`https://public-api.solscan.io/token/meta?address=${token}`)
     ]);
     const holdersJson = await holdersRes.json();
     const metaJson    = await metaRes.json();
