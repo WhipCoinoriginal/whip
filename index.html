@@ -57,7 +57,6 @@ svg.icon{width:20px;height:20px;display:block}
 .stepper strong{display:block;margin-bottom:4px}
 .stepper .muted{display:block}
 </style>
-
 <script>window.WHIP_TOKEN="4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon";</script>
 </head>
 <body>
@@ -91,13 +90,12 @@ svg.icon{width:20px;height:20px;display:block}
 </div><div class="section card video-card"><h2>Watch the $WHIP teaser</h2>
 <!-- === START: Multi‑teaser section (replaces old single teaser) === -->
 <div class="teaser-wrap" style="max-width:1200px;margin:2rem auto;padding:0 1rem;">
-  <video id="teaserVideo" autoplay muted playsinline controls loop poster="./og-image.png"
-         style="width:100%;height:auto;border-radius:16px;display:block;background:#000"></video>
-  <div style="display:flex;gap:.5rem;justify-content:center;margin-top:.75rem;">
-    <button data-i="0" aria-label="Play teaser 1" style="padding:.4rem .7rem;border-radius:8px;border:1px solid #ccc;background:#f6f6f6;cursor:pointer">1</button>
-    <button data-i="1" aria-label="Play teaser 2" style="padding:.4rem .7rem;border-radius:8px;border:1px solid #ccc;background:#f6f6f6;cursor:pointer">2</button>
-    <button data-i="2" aria-label="Play teaser 3" style="padding:.4rem .7rem;border-radius:8px;border:1px solid #ccc;background:#f6f6f6;cursor:pointer">3</button>
-  </div>
+<video autoplay="" controls="" id="teaserVideo" loop="" muted="" playsinline="" poster="./og-image.png" style="width:100%;height:auto;border-radius:16px;display:block;background:#000"></video>
+<div style="display:flex;gap:.5rem;justify-content:center;margin-top:.75rem;">
+<button aria-label="Play teaser 1" data-i="0" style="padding:.4rem .7rem;border-radius:8px;border:1px solid #ccc;background:#f6f6f6;cursor:pointer">1</button>
+<button aria-label="Play teaser 2" data-i="1" style="padding:.4rem .7rem;border-radius:8px;border:1px solid #ccc;background:#f6f6f6;cursor:pointer">2</button>
+<button aria-label="Play teaser 3" data-i="2" style="padding:.4rem .7rem;border-radius:8px;border:1px solid #ccc;background:#f6f6f6;cursor:pointer">3</button>
+</div>
 </div>
 <script>
 (function(){
@@ -143,34 +141,21 @@ svg.icon{width:20px;height:20px;display:block}
 </li>
 </ol>
 </div>
-
 <!-- Inizio blocco Live $WHIP -->
 <section id="whip-live-widgets" style="margin:50px 0; text-align:center;">
-
-
 <!-- === $WHIP Live Dashboard (auto-detect v3) === -->
-
 <!-- === $WHIP Live Dashboard (v4) === -->
-<section id="whip-dashboard" class="dash" style="padding:14px;border:1px solid #2a2a2a;border-radius:12px;background:#0b0b12;margin:28px 0 18px 0;">
-  <h2 style="margin:0 0 10px 0">$WHIP live</h2>
-  <div class="cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
-    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
-      <div class="k" style="opacity:.7;font-size:.9rem">Holders</div>
-      <div id="whip-holders" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
-    </div>
-    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
-      <div class="k" style="opacity:.7;font-size:.9rem">Market Cap</div>
-      <div id="whip-mcap" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
-    </div>
-    <div class="card" style="padding:12px;background:#151525;border:1px solid #26263a;border-radius:10px">
-      <div class="k" style="opacity:.7;font-size:.9rem">Liquidity</div>
-      <div id="whip-liq" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
-    </div>
-  </div>
-  <small id="whip-updated" style="display:block;margin-top:8px;opacity:.7">Updating…</small>
-  <div class="links" style="margin-top:10px">
-    <a id="solscan-link" href="#" target="_blank" rel="noopener" style="display:inline-block;padding:8px 12px;border:1px solid #2a2a2a;border-radius:8px;text-decoration:none">View on Solscan</a>
-  </div>
+
+<section class="container mx-auto" id="photon-live" style="margin:22px 0;padding:0;border:1px solid #26263a;border-radius:14px;background:#0f0f15">
+<h3 class="text-3xl md:text-4xl font-extrabold tracking-tight" style="margin:14px 16px 10px">Photon — Live</h3>
+<div class="rounded-xl overflow-hidden" style="border-top:1px solid #26263a">
+<iframe loading="lazy" src="https://photon-sol.tinyastro.io/en/lp/H2ai1cHRKzbU9Hs21xZC3UbWeRGwoYDuWRGUs1cMFyuV?handle=1235366a893b61c6407857&amp;theme=dark" style="width:100%;min-height:900px;border:0;display:block;" title="Photon Live"></iframe>
+</div>
+<div style="display:flex;justify-content:flex-end;padding:12px 14px">
+<a class="inline-flex items-center gap-2 rounded-lg" href="https://photon-sol.tinyastro.io/en/lp/H2ai1cHRKzbU9Hs21xZC3UbWeRGwoYDuWRGUs1cMFyuV?handle=1235366a893b61c6407857&amp;theme=dark" rel="noopener" style="border:1px solid #2a2a2a;padding:8px 12px;text-decoration:none" target="_blank">
+      ⚡ <span>Open in Photon</span>
+</a>
+</div>
 </section>
 
 <script>
@@ -275,23 +260,19 @@ svg.icon{width:20px;height:20px;display:block}
   setInterval(refresh, 30000);
 })();
 </script>
-
 <!-- === /$WHIP Live Dashboard === -->
 <!-- === /$WHIP Live Dashboard === -->
-
 <h2>$WHIP — Live Chart &amp; Market Data</h2>
 <!-- DEX Screener -->
 <div style="height:24px"></div>
-<iframe allowfullscreen="" height="600" loading="lazy" src="https://dexscreener.com/solana/4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon?embed=1&theme=dark&trades=0&info=0" style="border:0; border-radius:12px; overflow:hidden;" width="100%">
+<iframe allowfullscreen="" height="600" loading="lazy" src="https://dexscreener.com/solana/4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon?embed=1&amp;theme=dark&amp;trades=0&amp;info=0" style="border:0; border-radius:12px; overflow:hidden;" width="100%">
 </iframe>
 <div style="margin-top:20px; text-align:center;">
 </div>
 </section>
 <!-- Fine blocco Live $WHIP -->
-
 <div class="footer">
 <div>© <span id="year"></span> $WHIP. All rights reserved.</div>
-
 </div>
 </div>
 <script>
