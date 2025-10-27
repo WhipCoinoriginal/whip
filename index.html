@@ -139,6 +139,7 @@ svg.icon{width:20px;height:20px;display:block}
 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px">
 <a class="btn" href="https://jup.ag/" rel="noopener" target="_blank">Jupiter</a>
 <a class="btn" href="https://moonshot.money/" rel="noopener" target="_blank">Moonshot</a>
+<a class="btn" href="https://photon-sol.tinyastro.io/en/lp/H2ai1cHRKzbU9Hs21xZC3UbWeRGwoYDuWRGUs1cMFyuV?handle=1235366a893b61c6407857" target="_blank" rel="noopener"><img src="https://photon-sol.tinyastro.io/favicon.ico" alt="Photon" style="width:18px;height:18px;vertical-align:-3px;margin-right:8px">Swap on Photon</a>
 </div>
 </li>
 </ol>
@@ -183,6 +184,8 @@ svg.icon{width:20px;height:20px;display:block}
   const elU = document.getElementById('whip-updated');
   const elS = document.getElementById('solscan-link');
 
+  const TOKEN = (window.WHIP_TOKEN && window.WHIP_TOKEN.length>30) ? window.WHIP_TOKEN : null;
+
   async function getJson(url){
     try{
       const r = await fetch(url, {cache:'no-store', credentials:'omit'});
@@ -197,37 +200,44 @@ svg.icon{width:20px;height:20px;display:block}
     }catch(e){}
     return null;
   }
+  async function getText(url){
+    try{
+      const r = await fetch(url, {cache:'no-store', credentials:'omit'});
+      if (r.ok) return await r.text();
+    }catch(e){}
+    try{
+      const r2 = await fetch('https://api.allorigins.win/raw?url='+encodeURIComponent(url), {cache:'no-store'});
+      if (r2.ok) return await r2.text();
+    }catch(e){}
+    return '';
+  }
 
   async function dexByToken(token){ return await getJson(`https://api.dexscreener.com/latest/dex/tokens/${token}`) || {pairs:[]}; }
-  async function dexByPair(pair){ return await getJson(`https://api.dexscreener.com/latest/dex/pairs/solana/${pair}`) || {pairs:[]}; }
+  async function dexByPair(pair){  return await getJson(`https://api.dexscreener.com/latest/dex/pairs/solana/${pair}`) || {pairs:[]}; }
+
   async function solscanMeta(token){
     const h = await getJson(`https://public-api.solscan.io/token/holders?tokenAddress=${token}&offset=0&limit=1`) || {};
     const m = await getJson(`https://public-api.solscan.io/token/meta?address=${token}`) || {};
-    const holders   = Number(h?.total ?? h?.data?.total ?? 0);
+    let holders   = Number(h?.total ?? h?.data?.total ?? 0);
     const decimals  = Number(m?.decimals ?? m?.tokenInfo?.decimals ?? 0);
     const rawSupply = Number(m?.supply   ?? m?.tokenInfo?.supply   ?? 0);
     const circSupply = decimals ? rawSupply / (10 ** decimals) : rawSupply;
+    if (!holders){
+      const page = await getText(`https://solscan.io/token/${token}`);
+      const match = page && page.match(/Holders[\\s\\S]{0,120}?(\\d{1,7})/i);
+      if (match) holders = Number(match[1]);
+    }
     return { holders, circSupply };
-  }
-
-  function updateDexIframe(pair){
-    try{
-      const ifr = document.getElementById('dex-embed');
-      if (ifr && pair){
-        ifr.src = `https://dexscreener.com/solana/${pair}?embed=1&theme=dark&trades=0&info=0`;
-      }
-    }catch(e){}
   }
 
   async function refresh(){
     try{
-      const token = (window.WHIP_TOKEN && window.WHIP_TOKEN.length>30) ? window.WHIP_TOKEN : null;
-      if(!token) throw new Error('Missing token address');
-      elS && (elS.href = `https://solscan.io/token/${token}`);
+      if(!TOKEN) throw new Error('Missing token address');
+      elS && (elS.href = `https://solscan.io/token/${TOKEN}`);
 
       let price=null, marketCap=null, fdv=null, liquidityUsd=null, pairAddr=null;
 
-      const j = await dexByToken(token);
+      const j = await dexByToken(TOKEN);
       const pairs = j?.pairs || [];
       if (pairs.length){
         const best = pairs.sort((a,b)=>(b?.liquidity?.usd||0)-(a?.liquidity?.usd||0))[0];
@@ -238,7 +248,6 @@ svg.icon{width:20px;height:20px;display:block}
         fdv        = Number(best?.fdv        || 0) || null;
       }
 
-      if (pairAddr) updateDexIframe(pairAddr);
       if (liquidityUsd) elL.textContent = nfUsd.format(liquidityUsd);
 
       if ((!liquidityUsd || !price || !marketCap) && pairAddr){
@@ -253,7 +262,7 @@ svg.icon{width:20px;height:20px;display:block}
         }
       }
 
-      const meta = await solscanMeta(token);
+      const meta = await solscanMeta(TOKEN);
       const holders = meta.holders; const circSupply = meta.circSupply;
 
       let mcap = null;
@@ -261,8 +270,8 @@ svg.icon{width:20px;height:20px;display:block}
       else if (marketCap)      mcap = marketCap;
       else if (fdv)            mcap = fdv;
 
-      if (holders != null && !Number.isNaN(holders)) elH.textContent = nfInt.format(holders);
-      if (mcap    != null && !Number.isNaN(mcap))    elM.textContent = nfUsd.format(mcap);
+      if (holders != null && !Number.isNaN(holders) && holders>0) elH.textContent = nfInt.format(holders);
+      if (mcap    != null && !Number.isNaN(mcap))                 elM.textContent = nfUsd.format(mcap);
 
       elU.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
     }catch(e){
@@ -282,7 +291,7 @@ svg.icon{width:20px;height:20px;display:block}
 <h2>$WHIP — Live Chart &amp; Market Data</h2>
 <!-- DEX Screener -->
 <div style="height:24px"></div>
-<iframe allowfullscreen="" height="600" loading="lazy" src="https://dexscreener.com/solana/4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon?embed=1&theme=dark&trades=0&info=0" style="border:0; border-radius:12px; overflow:hidden;" width="100%">
+<iframe allowfullscreen="" height="600" loading="lazy" src="https://dexscreener.com/solana/4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon" style="border:0; border-radius:12px; overflow:hidden;" width="100%">
 </iframe>
 <div style="margin-top:20px; text-align:center;">
 </div>
