@@ -57,6 +57,8 @@ svg.icon{width:20px;height:20px;display:block}
 .stepper strong{display:block;margin-bottom:4px}
 .stepper .muted{display:block}
 </style>
+
+<script>window.WHIP_TOKEN="4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon";</script>
 </head>
 <body>
 <div class="wrap">
@@ -145,7 +147,8 @@ svg.icon{width:20px;height:20px;display:block}
 <!-- Inizio blocco Live $WHIP -->
 <section id="whip-live-widgets" style="margin:50px 0; text-align:center;">
 
-<!-- === $WHIP Live Dashboard (auto-detect) === -->
+
+<!-- === $WHIP Live Dashboard (auto-detect v3) === -->
 <section id="whip-dashboard" class="dash" style="padding:14px;border:1px solid #2a2a2a;border-radius:12px;background:#0b0b12;margin:28px 0 18px 0;">
   <h2 style="margin:0 0 10px 0">$WHIP live</h2>
   <div class="cards" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
@@ -162,7 +165,7 @@ svg.icon{width:20px;height:20px;display:block}
       <div id="whip-liq" class="v" style="font-weight:700;font-size:1.1rem;margin-top:3px">—</div>
     </div>
   </div>
-  <small id="whip-updated" style="display:block;margin-top:8px;opacity:.7">Aggiornamento…</small>
+  <small id="whip-updated" style="display:block;margin-top:8px;opacity:.7">Updating…</small>
 </section>
 
 <script>
@@ -174,11 +177,29 @@ svg.icon{width:20px;height:20px;display:block}
   const elL = document.getElementById('whip-liq');
   const elU = document.getElementById('whip-updated');
 
-  // 1) Try to read token from global; else from Dexscreener embed pair
+  function isStable(sym){ return /^(USDC|USDT|USD|\$)?(USDC|USDT|USD)?$/i.test((sym||'').trim()); }
+
+  function whenIframeReady(timeoutMs=10000){
+    const deadline = Date.now() + timeoutMs;
+    return new Promise((resolve) => {
+      function check(){
+        const iframe = Array.from(document.querySelectorAll('iframe'))
+          .find(x => (x.src||'').includes('dexscreener.com/solana/'));
+        if (iframe) return resolve(iframe);
+        if (Date.now() > deadline) return resolve(null);
+        setTimeout(check, 250);
+      }
+      if (document.readyState === 'loading'){
+        document.addEventListener('DOMContentLoaded', check, { once:true });
+      } else {
+        check();
+      }
+    });
+  }
+
   async function resolveTokenAddress(){
     if (window.WHIP_TOKEN && window.WHIP_TOKEN.length > 30) return window.WHIP_TOKEN;
-    const iframe = Array.from(document.querySelectorAll('iframe'))
-      .find(x => (x.src||'').includes('dexscreener.com'));
+    const iframe = await whenIframeReady(10000);
     if(!iframe) return null;
     try{
       const pair = (iframe.src.split('/').pop()||'').split('?')[0];
@@ -186,12 +207,9 @@ svg.icon{width:20px;height:20px;display:block}
       const j = await fetch(url).then(r=>r.json());
       const p = (j?.pairs||[])[0];
       if(!p) return null;
-      const bt = p.baseToken || {};
-      const qt = p.quoteToken || {};
-      // Prefer non-stable as token (avoid USDC/USDT), or the one named WHIP
-      const isStable = (sym) => /^(USDC|USDT|USD)\b/i.test(sym||'');
-      if ((bt?.symbol||'').toUpperCase().includes('WHIP')) return bt.address;
-      if ((qt?.symbol||'').toUpperCase().includes('WHIP')) return qt.address;
+      const bt = p.baseToken || {}, qt = p.quoteToken || {};
+      if ((bt.symbol||'').toUpperCase().includes('WHIP')) return bt.address;
+      if ((qt.symbol||'').toUpperCase().includes('WHIP')) return qt.address;
       if (!isStable(bt.symbol)) return bt.address;
       if (!isStable(qt.symbol)) return qt.address;
       return bt.address || qt.address || null;
@@ -217,8 +235,8 @@ svg.icon{width:20px;height:20px;display:block}
 
   async function fetchSolscanMeta(token){
     const [holdersRes, metaRes] = await Promise.all([
-      fetch(`https://api.solscan.io/token/holders?tokenAddress=${token}&offset=0&limit=1`),
-      fetch(`https://api.solscan.io/token/meta?tokenAddress=${token}`)
+      fetch(`https://public-api.solscan.io/token/holders?tokenAddress=${token}&offset=0&limit=1`),
+      fetch(`https://public-api.solscan.io/token/meta?tokenAddress=${token}`)
     ]);
     const holdersJson = await holdersRes.json();
     const metaJson    = await metaRes.json();
@@ -234,11 +252,9 @@ svg.icon{width:20px;height:20px;display:block}
       const token = await resolveTokenAddress() || (window.WHIP_TOKEN||null);
       if(!token){ throw new Error('Token address not found'); }
 
-      // Fetch DEX first (reliable CORS)
       const dex = await fetchDexByToken(token);
       if (dex.liquidityUsd) elL.textContent = nfUsd.format(dex.liquidityUsd);
 
-      // Try Solscan; if blocked, continue with FDV/marketCap
       let holders = null, circSupply = null;
       try{
         const meta = await fetchSolscanMeta(token);
@@ -252,13 +268,13 @@ svg.icon{width:20px;height:20px;display:block}
       else if (dex.marketCap) mcap = dex.marketCap;
       else if (dex.fdv) mcap = dex.fdv;
 
-      if (holders != null) elH.textContent = nfInt.format(holders);
-      if (mcap != null)    elM.textContent = nfUsd.format(mcap);
+      if (holders != null && !Number.isNaN(holders)) elH.textContent = nfInt.format(holders);
+      if (mcap != null && !Number.isNaN(mcap))       elM.textContent = nfUsd.format(mcap);
 
-      elU.textContent = 'Ultimo aggiornamento: ' + new Date().toLocaleTimeString();
+      elU.textContent = 'Last updated: ' + new Date().toLocaleTimeString();
     }catch(e){
       console.error(e);
-      elU.textContent = 'Impossibile aggiornare ora.';
+      elU.textContent = 'Unable to update now.';
     }
   }
 
@@ -267,6 +283,7 @@ svg.icon{width:20px;height:20px;display:block}
 })();
 </script>
 <!-- === /$WHIP Live Dashboard === -->
+
 <h2>$WHIP — Live Chart &amp; Market Data</h2>
 <!-- DEX Screener -->
 <div style="height:24px"></div>
