@@ -215,19 +215,30 @@ svg.icon{width:20px;height:20px;display:block}
 </script>
 <!-- === /NEXT EVENT (Online Airdrop) === -->
 Community Live — Chat with Creamers</h2>
-<!-- === START: Community Live embed === -->
-<div class="teaser-replacement" style="display:block;width:100%">
-  <div style="position:relative;width:100%;height:min(70vh,560px);border:1px solid #26263a;border-radius:12px;overflow:hidden;background:#0b0b12">
-    <iframe
-      src="https://minnit.chat/WhippedCoin?embed&nickname="
-      title="Creamers live chat"
-      style="width:100%;height:100%;border:0;display:block;background:#0b0b12"
-      allow="clipboard-write"
-      referrerpolicy="no-referrer">
-    </iframe>
+<!-- === Community Live (Chatango embed) === -->
+<section id="live-chat" class="card" style="margin:24px 0;padding:18px;border:1px solid #26263a;border-radius:14px;background:transparent;position:relative;overflow:hidden">
+  <!-- animated background -->
+  <div class="livechat-bg"></div>
+
+  <div style="position:relative; z-index:2;">
+    <h2 style="margin:0 0 12px;font-size:clamp(20px,2vw,28px);letter-spacing:.3px">
+      Community Live — Chat with Creamers
+    </h2>
+
+    <!-- Chatango embed: stanza pubblica 'whippedcoin' -->
+    <div style="width:100%;max-width:980px;margin:0 auto;">
+      <script id="cid0020000000000000001" data-cfasync="false" async src="//st.chatango.com/js/gz/emb.js" style="width:100%;height:520px;">
+        {"handle":"whippedcoin","arch":"js","styles":{"a":"FFFFFF","b":0,"c":"0F0F15","d":"0F0F15","e":"FFFFFF","f":80,"g":"0F0F15","h":"FFFFFF","k":"FFFFFF","l":"0F0F15","m":"0F0F15","n":"FFFFFF","p":"10","q":"0F0F15","r":100,"allowpm":0,"cnrs":"10","fwtickm":1}}
+      </script>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+      <a href="https://chatango.com/room/whippedcoin" target="_blank" rel="noopener" style="padding:8px 12px;border:1px solid #2a2a2a;border-radius:8px;text-decoration:none">Open in full screen</a>
+      <a href="https://t.me/whippedcoinchat" target="_blank" rel="noopener" style="padding:8px 12px;border:1px solid #2a2a2a;border-radius:8px;text-decoration:none">Open Telegram chat</a>
+    </div>
   </div>
-</div>
-<!-- === END: Community Live embed === -->
+</section>
+<!-- === /Community Live === -->
 </div>
 <div class="section card" id="buy">
 <h2>How to buy</h2>
