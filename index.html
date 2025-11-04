@@ -292,36 +292,75 @@ iframe[id^="cbox"], div[id^="cbox"],
 #live-chat-embed { margin: 24px auto 12px; }
 
 
-/* === Inline Chat (pill style) === */
-.chat-inline { margin: 18px 10px 8px; border-radius: 16px; }
-.chat-inline .pill {
+/* --- Chat drawer pill bar --- */
+.chatdrawer { margin: 18px 10px 8px; border-radius: 16px; }
+.chatdrawer > summary {
+  list-style: none; cursor: pointer; padding: 14px 16px;
   border-radius: 16px; border: 1px solid rgba(255,255,255,.08);
-  background: rgba(14,16,24,.50);
+  background: rgba(14,16,24,.5);
   backdrop-filter: blur(6px) saturate(120%);
-  padding: 14px 16px; font-weight: 700; font-size: 14px;
-  display:flex; align-items:center; gap:10px;
+  font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; gap: 10px;
 }
-.chat-inline .pill .dot{ width:8px;height:8px;border-radius:50%;background:#69f;opacity:.9; }
-.chat-inline .frame {
-  border: 1px solid rgba(255,255,255,.08); border-top:none;
+.chatdrawer > summary::-webkit-details-marker { display: none; }
+.chatdrawer .dot { width: 8px; height: 8px; border-radius: 50%; background:#69f; opacity:.9; }
+.chatdrawer[open] > summary { border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+.chatdrawer .drawer-body {
+  border: 1px solid rgba(255,255,255,.08);
+  border-top: none;
+  border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;
   background: rgba(14,16,24,.55);
-  border-bottom-left-radius:16px; border-bottom-right-radius:16px;
-  overflow:hidden; height:300px;
+  overflow: hidden;
 }
-.chat-inline .frame iframe, .chat-inline .frame div, .chat-inline .frame script { width:100%; height:100%; }
-@media (max-width: 420px){ .chat-inline .pill{ padding:12px 14px; font-size:13px; } .chat-inline .frame{ height: 260px; } }
-@media (orientation: landscape) and (max-height: 420px){ .chat-inline .frame{ height: 220px; } }
+.chatdrawer .drawer-body iframe, .chatdrawer .drawer-body div, .chatdrawer .drawer-body script { width: 100%; }
+@media (max-width: 420px){ .chatdrawer > summary { padding: 12px 14px; font-size: 13px; } }
 
 
-/* === FINAL whitelist for Chatango inside #live-chat === */
-#live-chat .frame *[id*="chatango"], 
-#live-chat .frame *[class*="chatango"],
-#live-chat .frame iframe {
+/* Whitelist the chat drawer content */
+#chatdrawer .drawer-body [id*="chatango"],
+#chatdrawer .drawer-body [class*="chatango"],
+#chatdrawer .drawer-body iframe {
   display: block !important;
   visibility: visible !important;
   opacity: 1 !important;
-  width: 100% !important;
-  height: 100% !important;
+  height: 300px !important;
+}
+
+
+/* Drawer: keep pill style; add tiny external-link anchor on the right */
+.chatdrawer { margin: 18px 10px 8px; border-radius: 16px; }
+.chatdrawer > summary {
+  list-style: none; cursor: pointer; padding: 14px 16px;
+  border-radius: 16px; border: 1px solid rgba(255,255,255,.08);
+  background: rgba(14,16,24,.5);
+  backdrop-filter: blur(6px) saturate(120%);
+  font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.chatdrawer > summary::-webkit-details-marker { display: none; }
+.chatdrawer .dot { width: 8px; height: 8px; border-radius: 50%; background:#69f; opacity:.9; }
+.chatdrawer .spacer { flex: 1; }
+.chatdrawer .ext { font-weight: 700; font-size: 13px; opacity: .9; text-decoration: none; border: 1px solid rgba(255,255,255,.08); padding: 6px 10px; border-radius: 10px; }
+.chatdrawer[open] > summary { border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+.chatdrawer .drawer-body {
+  border: 1px solid rgba(255,255,255,.08);
+  border-top: none;
+  border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;
+  background: rgba(14,16,24,.55);
+  overflow: hidden;
+}
+.chatdrawer .drawer-body iframe, .chatdrawer .drawer-body div, .chatdrawer .drawer-body script { width: 100%; }
+@media (max-width: 420px){ .chatdrawer > summary { padding: 12px 14px; font-size: 13px; } .chatdrawer .ext{ display:none; } }
+
+
+/* Whitelist chat contents inside drawer */
+#chatdrawer .drawer-body [id*="chatango"],
+#chatdrawer .drawer-body [class*="chatango"],
+#chatdrawer .drawer-body iframe {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: 300px !important;
 }
 
 </style>
@@ -495,6 +534,25 @@ iframe[id^="cbox"], div[id^="cbox"],
 
 
 <!-- === Community Live (Chatango embed) === -->
+<section id="live-chat" class="card" style="margin:24px 0;padding:18px;border:1px solid #26263a;border-radius:14px;background:transparent;position:relative;overflow:hidden">
+  <!-- animated background -->
+  <div class="livechat-bg"></div>
+
+  <div style="position:relative; z-index:2;">
+    <h2 style="margin:0 0 12px;font-size:clamp(20px,2vw,28px);letter-spacing:.3px">
+      Join to the Cream
+    </h2>
+
+    <!-- Chatango embed: stanza pubblica 'whippedcoin' -->
+    <div style="width:100%;max-width:980px;margin:0 auto;">
+      <script id="cid0020000000000000001" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="width:100%;height:520px;">
+        {"handle":"whippedcoinoriginal","arch":"js","styles":{"a":"FFFFFF","b":0,"c":"0F0F15","d":"0F0F15","e":"FFFFFF","f":80,"g":"0F0F15","h":"FFFFFF","k":"FFFFFF","l":"0F0F15","m":"0F0F15","n":"FFFFFF","p":"10","q":"0F0F15","r":100,"allowpm":0,"cnrs":"10","fwtickm":1}}
+      </script>
+    </div>
+
+    
+  </div>
+</section>
 <!-- === /Community Live === -->
 </div>
 <div class="section card" id="buy">
@@ -767,14 +825,19 @@ iframe[id^="cbox"], div[id^="cbox"],
 <!-- Sticky chat bar + footer --></div>
   
 
-<section id="live-chat" class="chat-inline" aria-label="Community Live — Chat with Creamers">
-  <div class="pill"><span class="dot"></span> Community Live — Chat with Creamers</div>
-  <div class="frame">
-    <script id="cid-whip" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="width:100%;height:100%;">
+
+<details id="chatdrawer" class="chatdrawer">
+  <summary>
+    <span class="dot"></span> Community Live — Chat with Creamers
+    <span class="spacer"></span>
+    <a class="ext" href="https://whippedcoinoriginal.chatango.com" target="_blank" rel="noopener">Open ↗</a>
+  </summary>
+  <div class="drawer-body" role="region" aria-label="Live Chat">
+    <script id="cid-whip" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="height:300px;">
     {"handle":"whippedcoinoriginal","arch":"js","styles":{"a":"0f1324","b":100,"c":"FFFFFF","d":"FFFFFF","e":"0","f":80,"k":"0f1324","l":"0f1324","m":"0f1324","p":"10","q":"1d2445","r":100,"t":0,"usricon":0,"surl":0,"font":"Inter"}}
     </script>
   </div>
-</section>
+</details>
 <footer id="site-footer">© 2025 $WHIP. All rights reserved.</footer>
 </div>
 
