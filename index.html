@@ -477,6 +477,16 @@ iframe[id^="cbox"], div[id^="cbox"],
 .chatdrawer[open] .swipe-hint{display:none;}
 
 </style>
+<style>
+/* === Fix double overlay: make .container transparent === */
+.container{
+  background: transparent !important;
+  border-color: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+</style>
+
 <script>
 // === NEXT EVENT countdown + progress (start->end) ===
 (function(){
