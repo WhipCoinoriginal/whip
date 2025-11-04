@@ -291,6 +291,41 @@ iframe[id^="cbox"], div[id^="cbox"],
 }
 #live-chat-embed { margin: 24px auto 12px; }
 
+
+/* --- Chat drawer pill bar --- */
+.chatdrawer { margin: 18px 10px 8px; border-radius: 16px; }
+.chatdrawer > summary {
+  list-style: none; cursor: pointer; padding: 14px 16px;
+  border-radius: 16px; border: 1px solid rgba(255,255,255,.08);
+  background: rgba(14,16,24,.5);
+  backdrop-filter: blur(6px) saturate(120%);
+  font-weight: 700; font-size: 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+.chatdrawer > summary::-webkit-details-marker { display: none; }
+.chatdrawer .dot { width: 8px; height: 8px; border-radius: 50%; background:#69f; opacity:.9; }
+.chatdrawer[open] > summary { border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+.chatdrawer .drawer-body {
+  border: 1px solid rgba(255,255,255,.08);
+  border-top: none;
+  border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;
+  background: rgba(14,16,24,.55);
+  overflow: hidden;
+}
+.chatdrawer .drawer-body iframe, .chatdrawer .drawer-body div, .chatdrawer .drawer-body script { width: 100%; }
+@media (max-width: 420px){ .chatdrawer > summary { padding: 12px 14px; font-size: 13px; } }
+
+
+/* Whitelist the chat drawer content */
+#chatdrawer .drawer-body [id*="chatango"],
+#chatdrawer .drawer-body [class*="chatango"],
+#chatdrawer .drawer-body iframe {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  height: 300px !important;
+}
+
 </style>
 <script>window.WHIP_TOKEN="4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon";</script>
 </head>
@@ -752,12 +787,15 @@ iframe[id^="cbox"], div[id^="cbox"],
 
 <!-- Sticky chat bar + footer --></div>
   
-<!-- Live Chatango embed (small) -->
-<section id="live-chat-embed" class="section card" aria-label="Live chat">
-  <script id="cid-whip" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="width:100%;height:320px;">
-  {"handle":"whippedcoinoriginal","arch":"js","styles":{"a":"0f1324","b":100,"c":"FFFFFF","d":"FFFFFF","e":"0","f":80,"k":"0f1324","l":"0f1324","m":"0f1324","p":"10","q":"1d2445","r":100,"t":0,"usricon":0,"surl":0,"font":"Inter"}}
-  </script>
-</section>
+
+<details id="chatdrawer" class="chatdrawer">
+  <summary><span class="dot"></span> Community Live — Chat with Creamers</summary>
+  <div class="drawer-body">
+    <script id="cid-whip" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="height:300px;">
+    {"handle":"whippedcoinoriginal","arch":"js","styles":{"a":"0f1324","b":100,"c":"FFFFFF","d":"FFFFFF","e":"0","f":80,"k":"0f1324","l":"0f1324","m":"0f1324","p":"10","q":"1d2445","r":100,"t":0,"usricon":0,"surl":0,"font":"Inter"}}
+    </script>
+  </div>
+</details>
 <footer id="site-footer">© 2025 $WHIP. All rights reserved.</footer>
 </div>
 
