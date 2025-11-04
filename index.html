@@ -465,6 +465,17 @@ iframe[id^="cbox"], div[id^="cbox"],
   #next-event{--bg:rgba(250,250,250,.65);--fg:#0b0b0b;--mut:#6b7280;--ring:#e5e7eb;--shadow:0 8px 24px rgba(0,0,0,.08)}
   #next-event .ne-btn{color:#0b0b0b}
 }
+
+/* Swipe hint for chat drawer */
+.chatdrawer .swipe-hint{
+  display:inline-flex; align-items:center; gap:4px; margin-left:8px;
+  font-weight:700; font-size:12px; opacity:.78;
+}
+.chatdrawer .swipe-hint .chev{display:inline-block; animation:swipeRight 1.2s infinite;}
+.chatdrawer .swipe-hint .chev + .chev{animation-delay:.2s;}
+@keyframes swipeRight{0%{opacity:.25;transform:translateX(0)}50%{opacity:1;transform:translateX(5px)}100%{opacity:.25;transform:translateX(0)}}
+.chatdrawer[open] .swipe-hint{display:none;}
+
 </style>
 <script>
 // === NEXT EVENT countdown + progress (start->end) ===
@@ -829,15 +840,35 @@ iframe[id^="cbox"], div[id^="cbox"],
 <details id="chatdrawer" class="chatdrawer">
   <summary>
     <span class="dot"></span> Community Live — Chat with Creamers
+    <span class="swipe-hint" aria-hidden="true"><span class="chev">›</span><span class="chev">›</span> Swipe →</span>
     <span class="spacer"></span>
     <a class="ext" href="https://whippedcoinoriginal.chatango.com" target="_blank" rel="noopener">Open ↗</a>
-  </summary>
+</summary>
   <div class="drawer-body" role="region" aria-label="Live Chat">
     <script id="cid-whip" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="height:300px;">
     {"handle":"whippedcoinoriginal","arch":"js","styles":{"a":"0f1324","b":100,"c":"FFFFFF","d":"FFFFFF","e":"0","f":80,"k":"0f1324","l":"0f1324","m":"0f1324","p":"10","q":"1d2445","r":100,"t":0,"usricon":0,"surl":0,"font":"Inter"}}
     </script>
   </div>
 </details>
+<script>
+(() => {
+  const drawer = document.getElementById('chatdrawer');
+  if (!drawer) return;
+  const summary = drawer.querySelector('summary');
+  let sx = 0, sy = 0;
+  function start(e){ const p = e.touches ? e.touches[0] : e; sx = p.clientX; sy = p.clientY; }
+  function move(e){
+    if (!sx) return;
+    const p = e.touches ? e.touches[0] : e;
+    const dx = p.clientX - sx, dy = Math.abs(p.clientY - sy);
+    if (dx > 40 && dy < 25){ drawer.open = true; sx = 0; }
+  }
+  summary.addEventListener('touchstart', start, {passive:true});
+  summary.addEventListener('touchmove',  move,  {passive:true});
+  summary.addEventListener('keydown', (e)=>{ if(e.key==='ArrowRight') drawer.open = true; });
+})();
+</script>
+
 <footer id="site-footer">© 2025 $WHIP. All rights reserved.</footer>
 </div>
 
