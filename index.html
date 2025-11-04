@@ -365,6 +365,78 @@ iframe[id^="cbox"], div[id^="cbox"],
 
 </style>
 <script>window.WHIP_TOKEN="4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon";</script>
+<style>
+/* ===== Remove ALL translucent 'glass/plate' overlays site-wide ===== */
+.container, .content, .wrap {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+/* Any element whose class name includes 'card', 'panel', 'glass', or 'box' */
+[class*="card"], [class*="panel"], [class*="glass"], [class*="box"] {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-color: rgba(255,255,255,0.10) !important; /* keep a very light outline; adjust if you want none */
+}
+/* Also neutralize pseudo-element overlays if present */
+[class*="card"]::before, [class*="panel"]::before, [class*="glass"]::before, [class*="box"]::before,
+[class*="overlay"], [class*="overlay"]::before, [class*="veil"], [class*="veil"]::before {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+</style>
+<style>
+/* ========== Remove ALL translucent plates / overlays site‑wide ========== */
+.container, .content, .wrap,
+[class*="card"], [class*="panel"], [class*="glass"], [class*="box"], [class*="pill"],
+.hero, .hero .card {
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-color: transparent !important;
+}
+/* if any pseudo elements paint a plate, neutralize them */
+.container::before, .content::before, .wrap::before,
+[class*="card"]::before, [class*="panel"]::before, [class*="glass"]::before, [class*="box"]::before,
+.hero::before, .hero .card::before {
+  content: none !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+/* ========== Rotate hint styling (shown only in portrait) ========== */
+.chatdrawer .rotate-hint{
+  display:none; align-items:center; gap:8px; margin-left:10px;
+  font-weight:700; font-size:12px; opacity:.9; letter-spacing:.2px;
+}
+.chatdrawer .rotate-hint .phone{
+  display:inline-block; width:14px; height:22px; position:relative;
+  border:2px solid currentColor; border-radius:3px;
+  animation:tilt 1.6s ease-in-out infinite;
+}
+.chatdrawer .rotate-hint .phone::before{ /* notch */
+  content:""; position:absolute; top:2px; left:50%; transform:translateX(-50%);
+  width:6px; height:2px; background:currentColor; border-radius:2px;
+}
+@keyframes tilt{
+  0%{transform:rotate(0deg)}
+  40%{transform:rotate(90deg)}
+  60%{transform:rotate(90deg)}
+  100%{transform:rotate(0deg)}
+}
+@media (orientation: portrait){
+  .chatdrawer .rotate-hint{ display:inline-flex; }
+}
+@media (orientation: landscape){
+  .chatdrawer .rotate-hint{ display:none; }
+}
+</style>
 </head>
 
 <!-- Rotating background (images + optional video) -->
@@ -477,16 +549,6 @@ iframe[id^="cbox"], div[id^="cbox"],
 .chatdrawer[open] .swipe-hint{display:none;}
 
 </style>
-<style>
-/* === Fix double overlay: make .container transparent === */
-.container{
-  background: transparent !important;
-  border-color: transparent !important;
-  backdrop-filter: none !important;
-  box-shadow: none !important;
-}
-</style>
-
 <script>
 // === NEXT EVENT countdown + progress (start->end) ===
 (function(){
@@ -850,16 +912,37 @@ iframe[id^="cbox"], div[id^="cbox"],
 <details id="chatdrawer" class="chatdrawer">
   <summary>
     <span class="dot"></span> Community Live — Chat with Creamers
-    <span class="swipe-hint" aria-hidden="true"><span class="chev">›</span><span class="chev">›</span> Swipe →</span>
+    <span class="rotate-hint" aria-hidden="true">
+      <span class="phone"></span> Rotate for live chat
+    </span>
     <span class="spacer"></span>
     <a class="ext" href="https://whippedcoinoriginal.chatango.com" target="_blank" rel="noopener">Open ↗</a>
-</summary>
+    </summary>
   <div class="drawer-body" role="region" aria-label="Live Chat">
     <script id="cid-whip" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="height:300px;">
     {"handle":"whippedcoinoriginal","arch":"js","styles":{"a":"0f1324","b":100,"c":"FFFFFF","d":"FFFFFF","e":"0","f":80,"k":"0f1324","l":"0f1324","m":"0f1324","p":"10","q":"1d2445","r":100,"t":0,"usricon":0,"surl":0,"font":"Inter"}}
     </script>
   </div>
 </details>
+<script>
+(() => {
+  const drawer = document.getElementById('chatdrawer');
+  if (!drawer) return;
+  const mq = window.matchMedia ? window.matchMedia("(orientation: landscape)") : null;
+  function setByOrientation(){
+    if (!drawer) return;
+    if (window.innerWidth > window.innerHeight) {
+      drawer.open = true;   // landscape -> show chat
+    } else {
+      drawer.open = false;  // portrait -> keep compact pill
+    }
+  }
+  setByOrientation();
+  window.addEventListener('resize', setByOrientation);
+  window.addEventListener('orientationchange', setByOrientation);
+})();
+</script>
+
 <script>
 (() => {
   const drawer = document.getElementById('chatdrawer');
