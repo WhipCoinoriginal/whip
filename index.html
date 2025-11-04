@@ -170,7 +170,7 @@ body { padding-bottom: 76px; }
 
 
 /* --- Full-page rotating background --- */
-#bg-rotator {
+#bg-rotator { pointer-events:none;
   position: fixed;
   inset: 0;
   z-index: -1;
@@ -187,12 +187,12 @@ body { padding-bottom: 76px; }
   will-change: opacity;
   filter: saturate(110%) contrast(105%);
 }
-#bg-rotator .img-layer.active { opacity: .58; } /* subtle so content stays readable */
+#bg-rotator .img-layer.active{opacity:.62;} /* subtle so content stays readable */
 #bg-rotator .scrim {
   position: absolute; inset:0;
-  background: radial-gradient(1200px 700px at 20% 20%, rgba(60,80,180,.14), transparent 60%),
-              radial-gradient(900px 600px at 80% 70%, rgba(255,120,60,.08), transparent 55%),
-              linear-gradient(to bottom, rgba(6,8,12,.38), rgba(6,8,12,.52));
+  background: radial-gradient(1200px 700px at 20% 20%, rgba(60,80,180,.18), transparent 60%),
+              radial-gradient(900px 600px at 80% 70%, rgba(255,120,60,.10), transparent 55%),
+              linear-gradient(to bottom, rgba(6,8,12,.6), rgba(6,8,12,.8));
   pointer-events: none;
 }
 #bg-rotator video.bgvid {
@@ -205,10 +205,30 @@ body { padding-bottom: 76px; }
   left: 50%;
   transform: translate(-50%, -50%);
   object-fit: cover;
-  opacity: .4;
+  opacity:.4;
   display: none;
 }
 #bg-rotator video.bgvid.show { display: block; }
+
+
+/* === BG visibility & landscape fixes === */
+html, body { background: transparent !important; }
+body > *:not(#bg-rotator) { position: relative; z-index: 1; }
+.card, .section.card, .hero, .panel, .box, .container-card {
+  background: rgba(14,16,24,0.48) !important;
+  border-color: rgba(255,255,255,0.06) !important;
+  backdrop-filter: blur(4px) saturate(120%);
+}
+/* Slightly stronger images on small screens and landscape */
+@media (max-width: 900px), (orientation: landscape) {
+  #bg-rotator .img-layer.active { opacity: .68; }
+  #bg-rotator .scrim { 
+    background: radial-gradient(1200px 700px at 20% 20%, rgba(60,80,180,.14), transparent 60%),
+                radial-gradient(900px 600px at 80% 70%, rgba(255,120,60,.08), transparent 55%),
+                linear-gradient(to bottom, rgba(6,8,12,.18), rgba(6,8,12,.36));
+  }
+  video.bgvid.show { opacity: .45; }
+}
 
 </style>
 <script>window.WHIP_TOKEN="4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon";</script>
@@ -611,10 +631,9 @@ body { padding-bottom: 76px; }
 (function(){
   // File list: update with your assets under /whip/
   const backgrounds = [
+    {type:'image', src:'/whip/4EE00B4C-29BE-4CD0-90E4-CB4B8AB3F62C.PNG'},
     {type:'image', src:'/whip/9B040CDB-269C-4E55-A510-32142832AED5.png.PNG'},
     {type:'image', src:'/whip/E9C959EB-9F44-4C13-861A-1587AAE14004.jpeg.PNG'},
-    {type:'image', src:'/whip/4EE00B4C-29BE-4CD0-90E4-CB4B8AB3F62C.PNG'},
-    
     // Add more images here if you upload them:
     // {type:'image', src:'/whip/B92F7E02-8E40-4F70-9633-80AA5AFA2975.jpeg'},
     // {type:'image', src:'/whip/B84B3E39-ADB8-48BC-BAE6-82E7DB47DF2D.jpeg'},
