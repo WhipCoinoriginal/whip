@@ -187,7 +187,7 @@ body { padding-bottom: 76px; }
   will-change: opacity;
   filter: saturate(110%) contrast(105%);
 }
-#bg-rotator .img-layer.active{opacity:.62;} /* subtle so content stays readable */
+#bg-rotator .img-layer.active{opacity:.72;} /* subtle so content stays readable */
 #bg-rotator .scrim {
   position: absolute; inset:0;
   background: radial-gradient(1200px 700px at 20% 20%, rgba(60,80,180,.18), transparent 60%),
@@ -221,13 +221,39 @@ body > *:not(#bg-rotator) { position: relative; z-index: 1; }
 }
 /* Slightly stronger images on small screens and landscape */
 @media (max-width: 900px), (orientation: landscape) {
-  #bg-rotator .img-layer.active { opacity: .68; }
+  #bg-rotator .img-layer.active{opacity:.72;}
   #bg-rotator .scrim { 
     background: radial-gradient(1200px 700px at 20% 20%, rgba(60,80,180,.14), transparent 60%),
                 radial-gradient(900px 600px at 80% 70%, rgba(255,120,60,.08), transparent 55%),
                 linear-gradient(to bottom, rgba(6,8,12,.18), rgba(6,8,12,.36));
   }
   video.bgvid.show { opacity: .45; }
+}
+
+
+/* Kill any auto Chatango floating widget that could appear on mobile */
+[id*="chatango"], [class*="chatango"], .cwc, .cwcs, .cwt, .cwh, .cbl, .cwi, .cwr, .cws, .cwcw, .cwc_iframe {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important; width: 0 !important; overflow: hidden !important;
+}
+
+
+/* Lighten hero and sections */
+.card, .section.card, .hero, .panel, .box, .container-card {
+  background: rgba(14,16,24,0.38) !important;
+  border-color: rgba(255,255,255,0.05) !important;
+  backdrop-filter: blur(4px) saturate(120%);
+}
+header, .hero h1, .hero p, .hero .pill, .hero .tagline { 
+  background: transparent !important;
+}
+
+
+@media (max-width: 900px), (orientation: landscape) {
+  #bg-rotator .img-layer.active { opacity: .78; }
+  video.bgvid.show { opacity: .5; }
 }
 
 </style>
