@@ -64,9 +64,164 @@ svg.icon{width:20px;height:20px;display:block}
 /* Ensure video fills card nicely */
 .video-card video { width:100%; height:auto; display:block; border-radius:12px; border:1px solid var(--border); background:#0c0c14; }
 
+
+/* (replaced legacy chat bar css) */
+#chatbar {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 9999;
+  border-radius: 14px;
+  background: rgba(20,22,33,0.92);
+  border: 1px solid var(--border, #27293a);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  backdrop-filter: saturate(150%) blur(8px);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  -webkit-touch-callout: none;
+}
+#chatbar .label {
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.2;
+  color: var(--text, #dbe0ff);
+  white-space: nowrap;
+}
+#chatbar .actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+#chatbar a.btn {
+  display: inline-block;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border, #2f3146);
+  background: #0f1324;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 14px;
+}
+#chatbar a.btn:hover { opacity: .92; }
+#chatbar a.btn-primary {
+  background: #1a244a;
+  border-color: #2a3668;
+}
+/* Hide the big chat card on this page (we keep links in the bar) */
+#live-chat { display: none !important; }
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  #chatbar { padding-bottom: calc(10px + env(safe-area-inset-bottom)); bottom: calc(12px + env(safe-area-inset-bottom)); }
+}
+
+
+/* --- Compact sticky chat bar (v2) --- */
+#chatbar {
+  position: fixed;
+  left: 10px;
+  right: 10px;
+  bottom: 10px;
+  z-index: 9999;
+  border-radius: 12px;
+  background: rgba(18,20,29,0.88);
+  border: 1px solid var(--border, #2a2d45);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  backdrop-filter: saturate(140%) blur(8px);
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#chatbar .label {
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.1;
+  color: var(--text, #e2e6ff);
+  opacity: .9;
+  white-space: nowrap;
+}
+#chatbar .actions { display:flex; gap:6px; margin-left:auto; }
+#chatbar a.btn {
+  display:inline-block;
+  padding: 8px 10px;
+  border-radius: 9px;
+  border: 1px solid var(--border, #2f3146);
+  background: #0f1324;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13px;
+}
+#chatbar a.btn-primary { background:#1a244a; border-color:#2a3668; }
+#chatbar a.btn:hover { opacity:.95; }
+/* On very small screens, hide the label so everything fits in one line */
+@media (max-width: 420px) {
+  #chatbar .label { display: none; }
+}
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  #chatbar { padding-bottom: calc(6px + env(safe-area-inset-bottom)); bottom: calc(10px + env(safe-area-inset-bottom)); }
+}
+
+/* Ensure content never hides under the sticky bar when scrolled to bottom */
+body { padding-bottom: 76px; }
+@media (max-width: 420px) { body { padding-bottom: 60px; } }
+
+
+/* --- Full-page rotating background --- */
+#bg-rotator {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: #0a0c14;
+}
+#bg-rotator .img-layer {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center center;
+  opacity: 0;
+  transition: opacity 900ms ease-in-out;
+  will-change: opacity;
+  filter: saturate(110%) contrast(105%);
+}
+#bg-rotator .img-layer.active { opacity: .3; } /* subtle so content stays readable */
+#bg-rotator .scrim {
+  position: absolute; inset:0;
+  background: radial-gradient(1200px 700px at 20% 20%, rgba(60,80,180,.22), transparent 60%),
+              radial-gradient(900px 600px at 80% 70%, rgba(255,120,60,.12), transparent 55%),
+              linear-gradient(to bottom, rgba(6,8,12,.6), rgba(6,8,12,.8));
+  pointer-events: none;
+}
+#bg-rotator video.bgvid {
+  position: absolute;
+  min-width: 100%;
+  min-height: 100%;
+  width: auto;
+  height: auto;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  opacity: .25;
+  display: none;
+}
+#bg-rotator video.bgvid.show { display: block; }
+
 </style>
 <script>window.WHIP_TOKEN="4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon";</script>
 </head>
+
+<!-- Rotating background (images + optional video) -->
+<div id="bg-rotator" aria-hidden="true">
+  <div class="img-layer" id="bgA"></div>
+  <div class="img-layer" id="bgB"></div>
+  <video class="bgvid" id="bgVideo" muted playsinline preload="metadata" loop></video>
+  <div class="scrim"></div>
+</div>
+
 <body>
 <div class="wrap">
 <div class="nav">
@@ -222,20 +377,7 @@ svg.icon{width:20px;height:20px;display:block}
 })();
 </script>
 <!-- === /NEXT EVENT (Online Airdrop) === -->
-<!-- === Watch the $WHIP teaser (video) === -->
-<section id="teaser" class="section card video-card" style="margin:24px 0;">
-  <h2 style="margin-top:0">Watch the $WHIP teaser</h2>
-  <video controls muted playsinline preload="metadata" poster="./assets/whip-teaser.jpg">
-    <source src="./assets/whip-teaser.webm" type="video/webm">
-    <source src="./assets/whip-teaser.mp4" type="video/mp4">
-    Sorry, your browser doesn't support embedded videos. 
-  </video>
-  <p class="muted" style="font-size:14px;margin-top:8px">
-    Place your video at <code>./assets/whip-teaser.mp4</code> (and optional <code>.webm</code> + <code>whip-teaser.jpg</code> poster). 
-    Filenames are case-sensitive on GitHub Pages.
-  </p>
-</section>
-<!-- === /Watch the $WHIP teaser === -->
+
 
 
 <!-- === Community Live (Chatango embed) === -->
@@ -245,7 +387,7 @@ svg.icon{width:20px;height:20px;display:block}
 
   <div style="position:relative; z-index:2;">
     <h2 style="margin:0 0 12px;font-size:clamp(20px,2vw,28px);letter-spacing:.3px">
-      Community Live — Chat with Creamers
+      Chat with Creamers
     </h2>
 
     <!-- Chatango embed: stanza pubblica 'whippedcoin' -->
@@ -256,7 +398,7 @@ svg.icon{width:20px;height:20px;display:block}
     </div>
 
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-      <a href="https://whippedcoinoriginal.chatango.com" target="_blank" rel="noopener" style="padding:8px 12px;border:1px solid #2a2a2a;border-radius:8px;text-decoration:none">Open in full screen</a>
+      <a href="https://whippedcoinoriginal.chatango.com" target="_blank" rel="noopener" style="padding:8px 12px;border:1px solid #2a2a2a;border-radius:8px;text-decoration:none">Open Chatango</a>
       <a href="https://t.me/whippedcoinoriginal" target="_blank" rel="noopener" style="padding:8px 12px;border:1px solid #2a2a2a;border-radius:8px;text-decoration:none">Open Telegram chat</a>
     </div>
   </div>
@@ -454,5 +596,89 @@ svg.icon{width:20px;height:20px;display:block}
 </script>
 
 <!-- Ensure images live under ./assets/ with EXACT filenames (case-sensitive) to avoid 404 on GitHub Pages -->
+
+<!-- Compact sticky chat bar -->
+<div id="chatbar" role="complementary" aria-label="Community chat quick access">
+  <div class="label">Chat with Creamers</div>
+  <div class="actions">
+    <a class="btn btn-primary" href="https://whippedcoinoriginal.chatango.com" target="_blank" rel="noopener">Open Chatango</a>
+    <a class="btn" href="https://t.me/whippedcoin" target="_blank" rel="noopener">Open Telegram</a>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  // File list: update with your assets under /whip/
+  const backgrounds = [
+    {type:'image', src:'/whip/9B040CDB-269C-4E55-A510-32142832AED5.png.PNG'},
+    {type:'image', src:'/whip/E9C959EB-9F44-4C13-861A-1587AAE14004.jpeg.PNG'},
+    // Add more images here if you upload them:
+    // {type:'image', src:'/whip/B92F7E02-8E40-4F70-9633-80AA5AFA2975.jpeg'},
+    // {type:'image', src:'/whip/B84B3E39-ADB8-48BC-BAE6-82E7DB47DF2D.jpeg'},
+    // {type:'image', src:'/whip/046D2B24-1862-4489-92BD-A268410F4099.jpeg'},
+    {type:'video', src:'/whip/F12B03CF-D86C-4A7B-BE33-E841F9ECCD6C.png.MP4'}
+  ];
+
+  const bgA = document.getElementById('bgA');
+  const bgB = document.getElementById('bgB');
+  const bgV = document.getElementById('bgVideo');
+  let idx = 0, active = bgA, idle = bgB;
+
+  function setImage(div, url){
+    bgV.classList.remove('show');
+    div.style.backgroundImage = 'url(\"'+url.replace(/\"/g,'\\\"')+'\")';
+    div.classList.add('active');
+  }
+
+  function setVideo(url){
+    bgV.src = url;
+    bgV.currentTime = 0;
+    bgV.play().catch(()=>{});
+    bgV.classList.add('show');
+    active.classList.remove('active');
+  }
+
+  function step(){
+    const item = backgrounds[idx % backgrounds.length];
+    // swap layers
+    const tmp = active; active = idle; idle = tmp;
+    idle.classList.remove('active');
+
+    if(item.type === 'image'){
+      setImage(active, item.src);
+    } else if(item.type === 'video'){
+      setVideo(item.src);
+    }
+
+    idx++;
+  }
+
+  // Preload first two images quickly
+  function preload(src, cb){
+    const i = new Image();
+    i.onload = cb; i.onerror = cb; i.src = src;
+  }
+
+  const firstImg = backgrounds.find(b => b.type === 'image');
+  if (firstImg){
+    preload(firstImg.src, ()=>{
+      setImage(active, firstImg.src);
+      setTimeout(step, 6000);
+    });
+  } else {
+    step();
+  }
+
+  // Cycle every 8s (images) / 12s (video stays a bit longer)
+  setInterval(()=>{
+    const current = backgrounds[(idx-1) % backgrounds.length];
+    const delay = current && current.type === 'video' ? 12000 : 8000;
+    step();
+  }, 8000);
+
+})();
+</script>
+
 </body>
 </html>
