@@ -280,6 +280,17 @@ iframe[id^="cbox"], div[id^="cbox"],
   #site-footer { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
 }
 
+
+/* Whitelist the official small embed at the bottom */
+#live-chat-embed iframe, #live-chat-embed [id*="chatango"], #live-chat-embed [class*="chatango"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  height: 320px !important;
+}
+#live-chat-embed { margin: 24px auto 12px; }
+
 </style>
 <script>window.WHIP_TOKEN="4hg8P6wj7dSFKXfk4cgpwYtCRqp87p77DdTriHbnmoon";</script>
 </head>
@@ -645,7 +656,7 @@ iframe[id^="cbox"], div[id^="cbox"],
 </section>
 <!-- Fine blocco Live $WHIP -->
 <div class="footer">
-<div>© <span id="year"><</div>
+<div></div>
 </div>
 </div>
 <script>
@@ -739,16 +750,15 @@ iframe[id^="cbox"], div[id^="cbox"],
 </script>
 
 
-<!-- Sticky chat bar + footer -->
-<div id="chatbar-wrap">
-  <div id="chatbar" role="complementary" aria-label="Community chat quick access">
-    <div class="label">Join to the Cream</div>
-    <div class="actions">
-      <a class="btn btn-primary" href="https://whippedcoinoriginal.chatango.com" target="_blank" rel="noopener">Open Chatango</a>
-      <a class="btn" href="https://t.me/whipcoins" target="_blank" rel="noopener">Open Telegram</a>
-    </div>
-  </div>
-  <footer id="site-footer">© 2025 $WHIP. All rights reserved.</footer>
+<!-- Sticky chat bar + footer --></div>
+  
+<!-- Live Chatango embed (small) -->
+<section id="live-chat-embed" class="section card" aria-label="Live chat">
+  <script id="cid-whip" data-cfasync="false" async src="https://st.chatango.com/js/gz/emb.js" style="width:100%;height:320px;">
+  {"handle":"whippedcoinoriginal","arch":"js","styles":{"a":"0f1324","b":100,"c":"FFFFFF","d":"FFFFFF","e":"0","f":80,"k":"0f1324","l":"0f1324","m":"0f1324","p":"10","q":"1d2445","r":100,"t":0,"usricon":0,"surl":0,"font":"Inter"}}
+  </script>
+</section>
+<footer id="site-footer">© 2025 $WHIP. All rights reserved.</footer>
 </div>
 
 </body>
