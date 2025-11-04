@@ -67,7 +67,7 @@ svg.icon{width:20px;height:20px;display:block}
 
 /* (replaced legacy chat bar css) */
 #chatbar {
-  position: fixed;
+  position: sticky;
   left: 12px;
   right: 12px;
   bottom: 12px;
@@ -120,10 +120,10 @@ svg.icon{width:20px;height:20px;display:block}
 
 /* --- Compact sticky chat bar (v2) --- */
 #chatbar {
-  position: fixed;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
+  position: sticky;
+  left: 0;
+  right: 0;
+  bottom: 0;
   z-index: 9999;
   border-radius: 12px;
   background: rgba(18,20,29,0.88);
@@ -165,8 +165,8 @@ svg.icon{width:20px;height:20px;display:block}
 }
 
 /* Ensure content never hides under the sticky bar when scrolled to bottom */
-body { padding-bottom: 76px; }
-@media (max-width: 420px) { body { padding-bottom: 60px; } }
+body{}
+@media (max-width: 420px) { body{} }
 
 
 /* --- Full-page rotating background --- */
@@ -254,6 +254,30 @@ header, .hero h1, .hero p, .hero .pill, .hero .tagline {
 @media (max-width: 900px), (orientation: landscape) {
   #bg-rotator .img-layer.active { opacity: .78; }
   video.bgvid.show { opacity: .5; }
+}
+
+
+/* Strong kill-switch for any auto Chatango overlay */
+iframe[src*="chatango.com"],
+iframe[id^="cbox"], div[id^="cbox"],
+[id*="chatango"], [class*="chatango"],
+.cwc, .cwcs, .cwt, .cwh, .cbl, .cwi, .cwr, .cws, .cwcw, .cwc_iframe,
+.tlft, .tlst, .tlct, .tlc_chatango, #tlc_Chatango, [id^="tlc_"], [class^="tlc_"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important; width: 0 !important; overflow: hidden !important;
+}
+
+
+#chatbar-wrap { position: relative; margin-top: 24px; }
+#chatbar { margin: 0 10px 0 10px; }
+#site-footer { 
+  text-align: center; font-size: 12px; opacity: .82; 
+  padding: 10px 0 14px; color: var(--muted, #cfd3f7);
+}
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  #site-footer { padding-bottom: calc(10px + env(safe-area-inset-bottom)); }
 }
 
 </style>
@@ -433,7 +457,7 @@ header, .hero h1, .hero p, .hero .pill, .hero .tagline {
 
   <div style="position:relative; z-index:2;">
     <h2 style="margin:0 0 12px;font-size:clamp(20px,2vw,28px);letter-spacing:.3px">
-      Chat with Creamers
+      Join to the Cream
     </h2>
 
     <!-- Chatango embed: stanza pubblica 'whippedcoin' -->
@@ -443,10 +467,7 @@ header, .hero h1, .hero p, .hero .pill, .hero .tagline {
       </script>
     </div>
 
-    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
-      <a href="https://whippedcoinoriginal.chatango.com" target="_blank" rel="noopener" style="padding:8px 12px;border:1px solid #2a2a2a;border-radius:8px;text-decoration:none">Open Chatango</a>
-      <a href="https://t.me/whippedcoinoriginal" target="_blank" rel="noopener" style="padding:8px 12px;border:1px solid #2a2a2a;border-radius:8px;text-decoration:none">Open Telegram chat</a>
-    </div>
+    
   </div>
 </section>
 <!-- === /Community Live === -->
@@ -624,7 +645,7 @@ header, .hero h1, .hero p, .hero .pill, .hero .tagline {
 </section>
 <!-- Fine blocco Live $WHIP -->
 <div class="footer">
-<div>© <span id="year"></span> $WHIP. All rights reserved.</div>
+<div>© <span id="year"><</div>
 </div>
 </div>
 <script>
@@ -642,16 +663,6 @@ header, .hero h1, .hero p, .hero .pill, .hero .tagline {
 </script>
 
 <!-- Ensure images live under ./assets/ with EXACT filenames (case-sensitive) to avoid 404 on GitHub Pages -->
-
-<!-- Compact sticky chat bar -->
-<div id="chatbar" role="complementary" aria-label="Community chat quick access">
-  <div class="label">Chat with Creamers</div>
-  <div class="actions">
-    <a class="btn btn-primary" href="https://whippedcoinoriginal.chatango.com" target="_blank" rel="noopener">Open Chatango</a>
-    <a class="btn" href="https://t.me/whippedcoin" target="_blank" rel="noopener">Open Telegram</a>
-  </div>
-</div>
-
 
 <script>
 (function(){
@@ -726,6 +737,19 @@ header, .hero h1, .hero p, .hero .pill, .hero .tagline {
 
 })();
 </script>
+
+
+<!-- Sticky chat bar + footer -->
+<div id="chatbar-wrap">
+  <div id="chatbar" role="complementary" aria-label="Community chat quick access">
+    <div class="label">Join to the Cream</div>
+    <div class="actions">
+      <a class="btn btn-primary" href="https://whippedcoinoriginal.chatango.com" target="_blank" rel="noopener">Open Chatango</a>
+      <a class="btn" href="https://t.me/whipcoins" target="_blank" rel="noopener">Open Telegram</a>
+    </div>
+  </div>
+  <footer id="site-footer">© 2025 $WHIP. All rights reserved.</footer>
+</div>
 
 </body>
 </html>
